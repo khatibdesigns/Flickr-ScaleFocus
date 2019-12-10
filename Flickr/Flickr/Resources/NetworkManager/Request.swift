@@ -39,7 +39,6 @@ class Request: NSMutableURLRequest {
         }
         
         self.httpMethod = requestMethod.value
-        
         self.addValue("application/json", forHTTPHeaderField: "Content-Type")
     }
 }

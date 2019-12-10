@@ -19,14 +19,8 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        self.configureView()
-        self.viewModelClosures()
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
-            self.searchBarController.isActive = true
+            self.configureView()
+            self.viewModelClosures()
     }
 
     func configureView() {
@@ -40,8 +34,8 @@ class ViewController: UIViewController {
         self.flickrCollectionView.register(UINib(nibName: "\(reuse_id)", bundle: nil), forCellWithReuseIdentifier: "\(reuse_id)")
         self.flickrCollectionView.delegate = self
         self.flickrCollectionView.dataSource = self
-
         
+        Client().get(text: "Kitten") { }
     }
 }
 
@@ -61,12 +55,9 @@ extension ViewController {
     }
 }
 
-extension ViewController: UICollectionViewDelegate {
-    
-}
-
-extension ViewController: UICollectionViewDataSource {
+extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        
         return Client().imageArray.count
     }
     
@@ -109,7 +100,6 @@ extension ViewController: UISearchControllerDelegate, UISearchBarDelegate {
         self.navigationItem.searchController = searchBarController
         searchBarController.delegate = self
         searchBarController.searchBar.delegate = self
-        searchBarController.dimsBackgroundDuringPresentation = false
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
@@ -120,9 +110,7 @@ extension ViewController: UISearchControllerDelegate, UISearchBarDelegate {
         
         self.flickrCollectionView.reloadData()
         
-        Client().search(text: text) {
-            print("search completed.")
-        }
+        Client().get(text: text) { }
         
         searchBarController.searchBar.resignFirstResponder()
     }

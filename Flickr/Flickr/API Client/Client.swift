@@ -33,7 +33,7 @@ class Client: NSObject {
     private(set) var imageArray = [Photos]()
     var dataUpdated: (() -> Void)?
     
-    func search(text: String, completion:@escaping () -> Void) {
+    func get(text: String, completion:@escaping () -> Void) {
         searchText = text
         imageArray.removeAll()
         fetchResults(completion: completion)
@@ -41,13 +41,9 @@ class Client: NSObject {
     
     private func fetchResults(completion:@escaping () -> Void) {
         
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
-        
         self.request(searchText, pageNo: pageNo) { (result) in
-        
-            Threads.runOnMainThread {
             
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+            Threads.runOnMainThread {
                 
                 switch result {
                 case .Success(let results):
@@ -80,7 +76,6 @@ class Client: NSObject {
             completion()
         }
     }
-    
     
     func request(_ searchText: String, pageNo: Int, completion: @escaping (Result<FlickrPhotos?>) -> Void) {
         
