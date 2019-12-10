@@ -140,8 +140,8 @@
 		AD44428A239F9C1C0044A535 /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
-				AD44428C239F9C2D0044A535 /* AppDelegate */,
 				AD44428D239F9C340044A535 /* Main */,
+				AD44428C239F9C2D0044A535 /* AppDelegate */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";

@@ -30,50 +30,43 @@ class Client: NSObject {
     private var searchText = ""
     private var pageNo = 1
     private var totalPageNo = 1
-    private(set) var imageArray = [Photos]()
+    
+    var showAlert: ((String) -> Void)?
     var dataUpdated: (() -> Void)?
     
-    func get(text: String, completion:@escaping () -> Void) {
+    func fetchResults(text: String, completion: @escaping ([Photos]) -> Void, failure: @escaping () -> Void) {
         searchText = text
-        imageArray.removeAll()
-        fetchResults(completion: completion)
-    }
-    
-    private func fetchResults(completion:@escaping () -> Void) {
-        
         self.request(searchText, pageNo: pageNo) { (result) in
             
             Threads.runOnMainThread {
-                
                 switch result {
                 case .Success(let results):
                     if let result = results {
                         self.totalPageNo = result.pages
-                        self.imageArray.append(contentsOf: result.photo)
-                        self.dataUpdated?()
-                    }
-                    completion()
-                case .Failure(_):
-                    
-                    completion()
-                case .Error(_):
-                    if self.pageNo > 1 {
                         
+                        completion(result.photo)
                     }
-                    completion()
+                    
+                case .Failure(_):
+                    failure()
+                case .Error(_):
+                    failure()
                 }
             }
         }
     }
     
-    func fetchNextPage(completion:@escaping () -> Void) {
+    func fetchNextPage(completion: @escaping ([Photos]) -> Void, failure: @escaping () -> Void) {
         if pageNo < totalPageNo {
             pageNo += 1
-            fetchResults {
-                completion()
+
+            fetchResults(text: "\(self.searchText)", completion: { (data) in
+                completion(data)
+            }) {
+                failure()
             }
         } else {
-            completion()
+            failure()
         }
     }
     

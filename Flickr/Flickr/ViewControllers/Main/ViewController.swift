@@ -11,54 +11,45 @@ import UIKit
 class ViewController: UIViewController {
 
     @IBOutlet weak var flickrCollectionView: UICollectionView!
+    
     private var searchBarController: UISearchController!
     private var columnCount: CGFloat = Statics.ColumnCount
     private var reuse_id = "ImageCollectionViewCell"
+    private var imageArray = [Photos]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
             self.configureView()
-            self.viewModelClosures()
     }
 
     func configureView() {
         
         createSearchBar()
-        navigationController?.navigationBar.prefersLargeTitles = true
-        navigationController?.navigationItem.largeTitleDisplayMode = .automatic
         
         self.navigationItem.title = "Flickr Photos"
         
-        self.flickrCollectionView.register(UINib(nibName: "\(reuse_id)", bundle: nil), forCellWithReuseIdentifier: "\(reuse_id)")
         self.flickrCollectionView.delegate = self
         self.flickrCollectionView.dataSource = self
-        
-        Client().get(text: "Kitten") { }
+        self.flickrCollectionView.register(UINib(nibName: "\(reuse_id)", bundle: nil), forCellWithReuseIdentifier: "\(reuse_id)")
     }
-}
-
-extension ViewController {
     
-    fileprivate func viewModelClosures() {
-        
-        self.searchBarController.isActive = false
-        
-        Client().dataUpdated = { [weak self] in
-            self?.flickrCollectionView.reloadData()
+    func loadNextPage() {
+        Client().fetchNextPage(completion: { (data) in
+            self.imageArray = data
+            self.flickrCollectionView.reloadData()
+        }) {
+            self.flickrCollectionView.reloadData()
         }
     }
     
-    private func loadNextPage() {
-        Client().fetchNextPage {}
-    }
 }
 
 extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         
-        return Client().imageArray.count
+        return self.imageArray.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -74,10 +65,16 @@ extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
             return
         }
         
-        cell.model = Image.init(image: Client().imageArray[indexPath.row])
+        cell.model = Image.init(image: self.imageArray[indexPath.row])
         
-        if indexPath.row == (Client().imageArray.count - 10) {
-            Client().fetchNextPage {}
+        if indexPath.row == (self.imageArray.count - 10) {
+            
+            Client().fetchNextPage(completion: { (data) in
+                self.imageArray.append(contentsOf: data)
+                self.flickrCollectionView.reloadData()
+            }) {
+                self.flickrCollectionView.reloadData()
+            }
         }
     }
 }
@@ -95,11 +92,12 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
 
 extension ViewController: UISearchControllerDelegate, UISearchBarDelegate {
     
-    private func createSearchBar() {
+    func createSearchBar() {
         searchBarController = UISearchController(searchResultsController: nil)
         self.navigationItem.searchController = searchBarController
         searchBarController.delegate = self
         searchBarController.searchBar.delegate = self
+        searchBarController.dimsBackgroundDuringPresentation = false
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
@@ -108,11 +106,14 @@ extension ViewController: UISearchControllerDelegate, UISearchBarDelegate {
             return
         }
         
+        Client().fetchResults(text: "\(text)", completion: { (data) in
+            self.imageArray = data
+            self.flickrCollectionView.reloadData()
+        }) {
+            self.flickrCollectionView.reloadData()
+        }
+        
         self.flickrCollectionView.reloadData()
-        
-        Client().get(text: text) { }
-        
         searchBarController.searchBar.resignFirstResponder()
     }
-    
 }
