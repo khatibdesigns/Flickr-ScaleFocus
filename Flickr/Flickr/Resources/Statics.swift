@@ -11,9 +11,8 @@ import UIKit
 
 class Statics: Codable {
 
-    static let api_key = "63f750f7c42662239caa7482194185b4"
-    static let per_page = 60
-    static let searchURL = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=\(api_key)&format=json&nojsoncallback=1&safe_search=1&per_page=\(per_page)&text=%@&page=%ld"
+    static let api_key = "3e7cc266ae2b0e0d78e279ce8e361736"
+    static let searchURL = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=\(api_key)&format=json&nojsoncallback=1&safe_search=1&text=%@&page=%ld"
     static let imageURL = "https://farm%d.staticflickr.com/%@/%@_%@_\(size.url_s.value).jpg"
     
     enum size: String {

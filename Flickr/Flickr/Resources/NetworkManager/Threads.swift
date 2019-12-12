@@ -16,6 +16,12 @@ class Threads {
         }
     }
     
+    static func runInBackground(closure: @escaping () -> Void) {
+        DispatchQueue.global(qos: .background).async {
+            closure()
+        }
+    }
+    
     static func runOnMainThread(closure: @escaping () -> Void) {
         DispatchQueue.main.async {
             closure()

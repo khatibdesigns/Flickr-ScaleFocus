@@ -32,11 +32,9 @@ class Manager: NSObject {
                 return completion(.Failure(error?.localizedDescription ?? Manager.errorMessage))
             }
             
-            guard let stringResponse = String(data: data, encoding: String.Encoding.utf8) else {
+            guard let _ = String(data: data, encoding: String.Encoding.utf8) else {
                 return completion(.Failure(error?.localizedDescription ?? Manager.errorMessage))
             }
-            
-            print("Respone: \(stringResponse)")
             
             return completion(.Success(data))
             

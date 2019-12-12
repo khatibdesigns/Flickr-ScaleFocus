@@ -27,24 +27,19 @@ enum RequestConfig {
 
 class Client: NSObject {
     
-    private var searchText = ""
     private var pageNo = 1
-    private var totalPageNo = 1
     
     var showAlert: ((String) -> Void)?
     var dataUpdated: (() -> Void)?
     
-    func fetchResults(text: String, completion: @escaping ([Photos]) -> Void, failure: @escaping () -> Void) {
-        searchText = text
-        self.request(searchText, pageNo: pageNo) { (result) in
+    func fetchResults(text: String, completion: @escaping (FlickrPhotos) -> Void, failure: @escaping () -> Void) {
+        self.request(text, pageNo: pageNo) { (result) in
             
             Threads.runOnMainThread {
                 switch result {
                 case .Success(let results):
                     if let result = results {
-                        self.totalPageNo = result.pages
-                        
-                        completion(result.photo)
+                        completion(result)
                     }
                     
                 case .Failure(_):
@@ -56,15 +51,16 @@ class Client: NSObject {
         }
     }
     
-    func fetchNextPage(completion: @escaping ([Photos]) -> Void, failure: @escaping () -> Void) {
+    func fetchNextPage(text: String, totalPageNo: Int, completion: @escaping (FlickrPhotos) -> Void, failure: @escaping () -> Void) {
         if pageNo < totalPageNo {
             pageNo += 1
 
-            fetchResults(text: "\(self.searchText)", completion: { (data) in
-                completion(data)
-            }) {
-                failure()
-            }
+                self.fetchResults(text: "\(text)", completion: { (data) in
+                    completion(data)
+                }) {
+                    failure()
+                }
+            
         } else {
             failure()
         }

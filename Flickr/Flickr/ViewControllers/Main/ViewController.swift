@@ -16,6 +16,8 @@ class ViewController: UIViewController {
     private var columnCount: CGFloat = Statics.ColumnCount
     private var reuse_id = "ImageCollectionViewCell"
     private var imageArray = [Photos]()
+    private var totalPageNo = 1
+    private var searchText = "Kitten"
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,17 +35,16 @@ class ViewController: UIViewController {
         self.flickrCollectionView.delegate = self
         self.flickrCollectionView.dataSource = self
         self.flickrCollectionView.register(UINib(nibName: "\(reuse_id)", bundle: nil), forCellWithReuseIdentifier: "\(reuse_id)")
-    }
-    
-    func loadNextPage() {
-        Client().fetchNextPage(completion: { (data) in
-            self.imageArray = data
+        
+        Client().fetchResults(text: "\(self.searchText)", completion: { (data) in
+            self.imageArray = data.photo
+            self.totalPageNo = data.pages
+            
             self.flickrCollectionView.reloadData()
         }) {
             self.flickrCollectionView.reloadData()
         }
     }
-    
 }
 
 extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
@@ -69,12 +70,17 @@ extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
         
         if indexPath.row == (self.imageArray.count - 10) {
             
-            Client().fetchNextPage(completion: { (data) in
-                self.imageArray.append(contentsOf: data)
-                self.flickrCollectionView.reloadData()
+            Threads.runInBackground {
+                Client().fetchNextPage(text: self.searchText, totalPageNo: self.totalPageNo, completion: { (data) in
+                self.imageArray.append(contentsOf: data.photo)
+                DispatchQueue.main.async {
+                          self.flickrCollectionView.reloadData()
+                    
+                       }
             }) {
-                self.flickrCollectionView.reloadData()
-            }
+               
+                }
+        }
         }
     }
 }
@@ -105,9 +111,9 @@ extension ViewController: UISearchControllerDelegate, UISearchBarDelegate {
         guard let text = searchBar.text, text.count > 1 else {
             return
         }
-        
-        Client().fetchResults(text: "\(text)", completion: { (data) in
-            self.imageArray = data
+        self.searchText = text
+        Client().fetchResults(text: "\(self.searchText)", completion: { (data) in
+            self.imageArray = data.photo
             self.flickrCollectionView.reloadData()
         }) {
             self.flickrCollectionView.reloadData()
